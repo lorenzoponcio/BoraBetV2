@@ -54,7 +54,14 @@ const Dashboard = () => {
     navigate("/auth");
   };
 
-  const handleBet = async (matchId: number, marketId: number, selectionCode: string, odds: number, stake: number) => {
+  // 🔥 MÉTODO CORRIGIDO
+  const handleBet = async (
+    matchId: number,
+    marketId: number,
+    selectionCode: string,
+    odds: number,
+    stake: number
+  ) => {
     if (stake > balance) {
       toast.error("Saldo insuficiente!");
       return;
@@ -65,20 +72,24 @@ const Dashboard = () => {
         matchId,
         marketId,
         selectionCode,
-        odds,
-        stake,
+        expectedOdds: odds,        // 🔥 nome correto
+        stake: Number(stake),      // 🔥 garantir número
+        idempotencyKey: crypto.randomUUID(), // 🔥 obrigatório
       });
 
       // Atualizar lista de apostas
       const updatedBets = await betsService.listBets();
       setBets(updatedBets);
-      
+
       // Atualizar saldo
       setBalance(balance - stake);
-      
-      toast.success(`Aposta realizada! Retorno potencial: R$ ${betResponse.potentialReturn.toFixed(2)}`);
+
+      toast.success(
+        `Aposta realizada! Retorno potencial: R$ ${betResponse.potentialReturn.toFixed(2)}`
+      );
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Erro ao criar aposta");
+      toast.error("Erro ao criar aposta");
+      console.error(error);
     }
   };
 
@@ -105,7 +116,7 @@ const Dashboard = () => {
                 BoraBet
               </h1>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <Card className="px-4 py-2 bg-background border-border">
                 <div className="flex items-center gap-2">
@@ -114,7 +125,7 @@ const Dashboard = () => {
                   <span className="font-bold text-primary">R$ {balance.toFixed(2)}</span>
                 </div>
               </Card>
-              
+
               <Button
                 variant="outline"
                 size="sm"
